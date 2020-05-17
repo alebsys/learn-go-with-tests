@@ -1,72 +1,68 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"os"
+	"strings"
 )
 
-const c = "C"
-const g = "G"
-const d = "D"
-const a = "A"
-const e = "E"
-const b = "B"
-const f = "F"
+const (
+	unknownChordMessage = "Unknown chord"
+	blankChordMessage   = "You didn't said chord"
+)
 
-const cm = "Cm"
-const gm = "Gm"
-const dm = "Dm"
-const am = "Am"
-const em = "Em"
-const bm = "Bm"
-const fm = "Fm"
-
-// ChordCircle function
-func ChordCircle(inChord string) (outChord string) {
-	// var outChord string
-	// if inChord == "C" {
-	// 	outChord = "Am"
-	// }
-	return inChord + " chord have " + outChordFunc(inChord) + " parallel chord"
-}
-
-func outChordFunc(inChord string) (outChord string) {
-	switch inChord {
-	case c:
-		outChord = am
-	case g:
-		outChord = em
-	case d:
-		outChord = bm
-	case a:
-		outChord = "F#m"
-	case e:
-		outChord = "C#m"
-	case b:
-		outChord = "G#m"
-	case f:
-		outChord = dm
-	case am:
-		outChord = c
-	case em:
-		outChord = g
-	case bm:
-		outChord = d
-	case fm:
-		outChord = "Ab"
-	case cm:
-		outChord = "Eb"
-	case dm:
-		outChord = f
-	case gm:
-		outChord = "Bb"
+var (
+	chord, parallelChord string
+	err                  error
+	majorToMinor         bool
+	chords               = map[string]string{
+		"C": "Am",
+		"D": "Hm",
+		"E": "C#m",
+		"F": "Dm",
+		"G": "Em",
+		"A": "F#m",
+		"H": "G#m",
 	}
-	return
-}
+)
 
 func main() {
-	var chord string
-	fmt.Print("Введите аккорд: ")
-	fmt.Fscan(os.Stdin, &chord)
-	fmt.Println(ChordCircle(chord))
+	fmt.Printf("Say chord: ")
+	fmt.Scanf("%s", &chord)
+	if strings.ContainsAny(chord, "m") {
+		parallelChord, err = getMajor(chord)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	} else {
+		parallelChord, err = getMinor(chord)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	fmt.Printf("%s chord have %s parallel chord\n", chord, parallelChord)
+}
+
+func getMinor(major string) (string, error) {
+	if major == "" {
+		return "", errors.New(blankChordMessage)
+	}
+	if _, ok := chords[major]; !ok {
+		return "", errors.New(unknownChordMessage)
+	}
+	return chords[major], nil
+}
+
+func getMajor(minor string) (string, error) {
+	if minor == "" {
+		return "", errors.New(blankChordMessage)
+	}
+	for k, v := range chords {
+		if v == minor {
+			return k, nil
+		}
+	}
+	return "", errors.New(unknownChordMessage)
 }
